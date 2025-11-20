@@ -1,0 +1,46 @@
+{
+  "5782683757": {
+    "username": "RBXTelega1",
+    "first_name": "Манго",
+    "last_name": "👨‍💻",
+    "all": {
+      "messages": 14
+    },
+    "by_chat": {
+      "-1002241393389": 14
+    }
+  },
+  "6545137320": {
+    "username": "ruskik_stovtoroi_po_schety",
+    "first_name": "mr_LIGHT",
+    "last_name": null,
+    "all": {
+      "messages": 6
+    },
+    "by_chat": {
+      "-1002241393389": 6
+    }
+  },
+  "6483732727": {
+    "username": "Bloxeer",
+    "first_name": "Alex",
+    "last_name": null,
+    "all": {
+      "messages": 2
+    },
+    "by_chat": {
+      "6483732727": 2
+    }
+  },
+  "7648592847": {
+    "username": "vrf322",
+    "first_name": "GTX",
+    "last_name": null,
+    "all": {
+      "messages": 3
+    },
+    "by_chat": {
+      "7648592847": 3
+    }
+  }
+}
