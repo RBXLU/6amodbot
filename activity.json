@@ -1,35 +1,37 @@
 {
   "5782683757": {
     "username": "RBXTelega1",
-    "first_name": "Манго",
+    "first_name": "Mr. Посхалко",
     "last_name": "👨‍💻",
     "all": {
-      "messages": 14
+      "messages": 604
     },
     "by_chat": {
-      "-1002241393389": 14
+      "-1002241393389": 138,
+      "5782683757": 466
     }
   },
   "6545137320": {
     "username": "ruskik_stovtoroi_po_schety",
-    "first_name": "mr_LIGHT",
+    "first_name": "ruskik102",
     "last_name": null,
     "all": {
-      "messages": 6
+      "messages": 18
     },
     "by_chat": {
-      "-1002241393389": 6
+      "-1002241393389": 18
     }
   },
   "6483732727": {
     "username": "Bloxeer",
-    "first_name": "Alex",
+    "first_name": "Alex😶",
     "last_name": null,
     "all": {
-      "messages": 2
+      "messages": 1000
     },
     "by_chat": {
-      "6483732727": 2
+      "6483732727": 1000,
+      "-1002241393389": 3
     }
   },
   "7648592847": {
@@ -41,6 +43,117 @@
     },
     "by_chat": {
       "7648592847": 3
+    }
+  },
+  "6805997690": {
+    "username": "OzvyshuvayRozu",
+    "first_name": "Мисс Блуми",
+    "last_name": null,
+    "all": {
+      "messages": 1801
+    },
+    "by_chat": {
+      "-1002241393389": 92,
+      "-1003329120037": 1709
+    }
+  },
+  "6644275327": {
+    "username": "XuORiAZVG",
+    "first_name": "SENEYRO_GHISN",
+    "last_name": "Саша",
+    "all": {
+      "messages": 1
+    },
+    "by_chat": {
+      "-1002241393389": 1
+    }
+  },
+  "6937329693": {
+    "username": null,
+    "first_name": "Lara 2025🐲💌🥀🤬 карамелька 1488",
+    "last_name": null,
+    "all": {
+      "messages": 2
+    },
+    "by_chat": {
+      "-1002241393389": 2
+    }
+  },
+  "5375431937": {
+    "username": "Rage26Yaroste",
+    "first_name": "Niara🤍🎧🏐",
+    "last_name": null,
+    "all": {
+      "messages": 1
+    },
+    "by_chat": {
+      "-1002241393389": 1
+    }
+  },
+  "8284729373": {
+    "username": "reservRBXTelega",
+    "first_name": "Клутой😎😎😎",
+    "last_name": null,
+    "all": {
+      "messages": 295
+    },
+    "by_chat": {
+      "-1002241393389": 8
+    }
+  },
+  "8041353323": {
+    "username": "Hdjsjjjz",
+    "first_name": "Misha",
+    "last_name": null,
+    "all": {
+      "messages": 22
+    },
+    "by_chat": {
+      "-1002241393389": 22
+    }
+  },
+  "5862095051": {
+    "username": null,
+    "first_name": "Дима Акинин",
+    "last_name": null,
+    "all": {
+      "messages": 9
+    },
+    "by_chat": {
+      "-1002241393389": 9
+    }
+  },
+  "7993844003": {
+    "username": "dashhiiikkk",
+    "first_name": "Даша]🩷",
+    "last_name": null,
+    "all": {
+      "messages": 1
+    },
+    "by_chat": {
+      "7993844003": 1
+    }
+  },
+  "6657988816": {
+    "username": "okak_99906",
+    "first_name": "♡Нимеция♡",
+    "last_name": null,
+    "all": {
+      "messages": 1
+    },
+    "by_chat": {
+      "-1002241393389": 1
+    }
+  },
+  "8493126459": {
+    "username": null,
+    "first_name": "Kinder",
+    "last_name": null,
+    "all": {
+      "messages": 1
+    },
+    "by_chat": {
+      "-1002241393389": 1
     }
   }
 }
