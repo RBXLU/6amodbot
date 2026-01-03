@@ -86,7 +86,12 @@ def load_immune_users():
     if os.path.exists(IMMUNE_FILE):
         try:
             with open(IMMUNE_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                # Нормализуем ключи в строки и значения в int
+                try:
+                    return {str(k): int(v) for k, v in data.items()}
+                except Exception:
+                    return data
         except Exception as e:
             print(f"⚠ Ошибка при загрузке данных об иммунитете: {e}")
     return {}
@@ -94,8 +99,10 @@ def load_immune_users():
 # Сохранение данных об иммунитете
 def save_immune_users(data):
     try:
+        # Убедимся, что ключи — строки и значения — целые числа
+        safe = {str(k): int(v) for k, v in (data or {}).items()}
         with open(IMMUNE_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+            json.dump(safe, f, ensure_ascii=False, indent=2)
     except Exception as e:
         print(f"⚠ Ошибка при сохранении данных об иммунитете: {e}")
 
@@ -246,37 +253,12 @@ def check_leader_and_promote(chat_id: int):
     except Exception as e:
         print(f"Ошибка при выдаче прав: {e}")
 
-@bot.message_handler(func=lambda m: bool(getattr(m, "text", None)) and not m.text.startswith("/"))
-def handle_message(message):
-    # Увеличиваем активность пользователя
-    _activity_add(message.from_user, message.chat.id)
-
-    # Начисляем монеты за сообщение
-    try:
-        add_coins(message.from_user.id, 1)  # Начисляем 1 монету за сообщение
-    except Exception as e:
-        print(f"Ошибка при начислении монет: {e}")
-
-    # Геймификация: начисляем XP за сообщение
-    try:
-        level_up, new_level, total_xp = add_xp(
-            message.from_user.id,
-            message.from_user.username or message.from_user.first_name,
-            amount=5
-        )
-        if level_up:
-            bot.reply_to(
-                message,
-                f"🎉 {message.from_user.first_name} повысил уровень до {new_level}! (Всего XP: {total_xp})"
-            )
-    except Exception as e:
-        print(f"Ошибка при начислении XP: {e}")
-
 from telebot import types
 import sys, os
 
 # 🔑 Твой Telegram ID
 OWNER_ID = 5782683757  
+ADMIN_USER_ID = OWNER_ID
 
 # ⚙ Меню управления
 @bot.message_handler(commands=["control"])
@@ -370,67 +352,139 @@ banned_words = [
     # добавь свои слова через запятую
 ]
 
+# ===== Антиспам (личные сообщения) =====
+PRIVATE_SPAM_FILE = "private_spam.json"
+private_spam_blocks = {}  # { uid(str): until_timestamp }
+
+def load_private_spam():
+    global private_spam_blocks
+    if os.path.exists(PRIVATE_SPAM_FILE):
+        try:
+            with open(PRIVATE_SPAM_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                # ensure numeric
+                private_spam_blocks = {k: float(v) for k, v in data.items()}
+        except Exception:
+            private_spam_blocks = {}
+    else:
+        private_spam_blocks = {}
+
+def save_private_spam():
+    try:
+        with open(PRIVATE_SPAM_FILE, "w", encoding="utf-8") as f:
+            json.dump(private_spam_blocks, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"⚠ Ошибка при сохранении private_spam: {e}")
+
+load_private_spam()
+
 # ===================== АВТОМОДЕРАЦИЯ ======================
 @bot.message_handler(func=lambda m: bool(getattr(m, "text", None)) and not m.text.startswith("/"))
-def anti_spam_handler(message):
+def message_handler_all(message):
     user_id = message.from_user.id
     now = time.time()
 
-    # --- Инициализация списка сообщений ---
+    # Отслеживаем активность
+    try:
+        _activity_add(message.from_user, message.chat.id)
+    except Exception:
+        pass
+
+    # Инициализация списка сообщений
+    uid = str(user_id)
     if user_id not in user_messages:
         user_messages[user_id] = []
 
-    # --- Антиспам ---
+    # Добавляем таймстамп и оставляем последние 10 секунд
     user_messages[user_id].append(now)
-    # оставляем только последние 10 секунд
-    user_messages[user_id] = [t for t in user_messages[user_id] if now - t <= 5]
+    user_messages[user_id] = [t for t in user_messages[user_id] if now - t <= 10]
 
-    if len(user_messages[user_id]) >= 5:
-        try:
-            bot.restrict_chat_member(
-                chat_id=message.chat.id,
-                user_id=user_id,
-                permissions=types.ChatPermissions(can_send_messages=False),
-                until_date=int(now) + 3600  # мут на 1 час
-            )
-            bot.reply_to(message, f"⚠️ {message.from_user.first_name}, слишком много сообщений! Мут на 1 час.")
-            user_messages[user_id] = []
-        except Exception:
-            pass
+    GROUP_THRESHOLD = 5
+    PRIVATE_THRESHOLD = 6
 
-    # --- Проверка на мат ---
-    text_lower = message.text.lower()
-    if any(bw in text_lower for bw in banned_words):
-        try:
-            bot.restrict_chat_member(
-                chat_id=message.chat.id,
-                user_id=user_id,
-                permissions=types.ChatPermissions(can_send_messages=False),
-                until_date=int(now) + 3600  # мут на 1 час
-            )
-            bot.reply_to(message, f"⛔ {message.from_user.first_name}, запрещённые слова! Мут на 1 час.")
-        except Exception:
-            pass
-    # --- Сохраняем данные между перезапусками ---
-    with open('user_messages.json', 'w') as f:
-        json.dump({str(uid): ts for uid, ts in user_messages.items()}, f)
-
-            # ====== Отслеживание сообщений ======
-        @bot.message_handler(func=lambda m: bool(getattr(m, "text", None)) and not m.text.startswith("/"))
-        def handle_message(message):
-                _activity_add(message.from_user)
-                # Если есть авто-модерация, её можно оставить здесь
-
-                    # === Геймификация: начисляем XP за обычное сообщение (не команду) ===
+    # Спам-проверка
     try:
-        level_up, new_level, total_xp = add_xp(message.from_user.id, message.from_user.username or message.from_user.first_name, amount=5)
+        if message.chat.type == "private":
+            if len(user_messages[user_id]) >= PRIVATE_THRESHOLD:
+                block_seconds = 10 * 60
+                private_spam_blocks[uid] = time.time() + block_seconds
+                save_private_spam()
+                bot.reply_to(message, f"⚠️ {message.from_user.first_name}, слишком много сообщений в ЛС. Начисления монет/XP отключены на 10 минут.")
+                try:
+                    admin_text = f"⚠️ Пользователь @{message.from_user.username or message.from_user.first_name} (ID:{uid}) заблокирован от начислений на 10 минут из-за спама в ЛС."
+                    bot.send_message(ADMIN_CHAT_ID, admin_text)
+                except Exception:
+                    pass
+                user_messages[user_id] = []
+                return
+        else:
+            if len(user_messages[user_id]) >= GROUP_THRESHOLD:
+                try:
+                    if not is_admin(message.chat.id, user_id):
+                        bot.restrict_chat_member(
+                            chat_id=message.chat.id,
+                            user_id=user_id,
+                            permissions=types.ChatPermissions(can_send_messages=False),
+                            until_date=int(now) + 3600
+                        )
+                        bot.reply_to(message, f"⚠️ {message.from_user.first_name}, слишком много сообщений! Мут на 1 час.")
+                        user_messages[user_id] = []
+                        return
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    # Проверка на мат/запрещённые слова
+    try:
+        text_lower = (message.text or "").lower()
+        if any(bw.lower() in text_lower for bw in banned_words):
+            if message.chat.type == "private":
+                bot.reply_to(message, f"⛔ {message.from_user.first_name}, запрещённые слова в личке — предупреждение.")
+            else:
+                try:
+                    bot.restrict_chat_member(
+                        chat_id=message.chat.id,
+                        user_id=user_id,
+                        permissions=types.ChatPermissions(can_send_messages=False),
+                        until_date=int(now) + 3600
+                    )
+                    bot.reply_to(message, f"⛔ {message.from_user.first_name}, запрещённые слова! Мут на 1 час.")
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    # Сохраняем короткую историю сообщений
+    try:
+        with open('user_messages.json', 'w', encoding='utf-8') as f:
+            json.dump({str(k): v for k, v in user_messages.items()}, f, ensure_ascii=False)
+    except Exception:
+        pass
+
+    # Если есть активный приватный блок — не начисляем
+    try:
+        blocked_until = private_spam_blocks.get(uid, 0)
+        if message.chat.type == "private" and blocked_until and time.time() < blocked_until:
+            rem = int(blocked_until - time.time())
+            mins = rem // 60
+            bot.reply_to(message, f"❌ Начисления временно отключены. Подождите {mins} мин.")
+            return
+    except Exception:
+        pass
+
+    # Начисляем монеты и XP
+    try:
+        add_coins(user_id, 1)
+    except Exception:
+        pass
+
+    try:
+        level_up, new_level, total_xp = add_xp(user_id, message.from_user.username or message.from_user.first_name, amount=5)
         if level_up:
-            bot.reply_to(
-                message,
-                f"🎉 {message.from_user.first_name} повысил уровень до {new_level}! (Всего XP: {total_xp})"
-            )
-    except Exception as e:
-        print("XP error:", e)
+            bot.reply_to(message, f"🎉 {message.from_user.first_name} повысил уровень до {new_level}! (Всего XP: {total_xp})")
+    except Exception:
+        pass
 
 def add_xp_with_rewards(user_id, username, amount=5):
     level_up, new_level, total_xp = add_xp(user_id, username, amount)
@@ -721,7 +775,7 @@ def cmd_rules(message):
         "2) Без оскорблений/мата\n"
         "3) Не обижать\n"
         "4) Уважение к участникам\n"
-        "5) Без 18+"
+        "5) Без 18+", parse_mode="HTML"
     )
 
 
@@ -849,7 +903,7 @@ def cmd_report(message):
 
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        bot.reply_to(message, "✍️ Используй: /report [текст жалобы]\n<b>как правльно оформить жалобу<b>\nесли у вас жалоба на сообщение, следуйте инструкции:\n1. зажмите это сообщение\n2. скопируйте ссылку на сообщение\nправильное фофрмление: /report [ссылка на сообщение] [причина]\n\n <b>жалоба на пользователя<b>\nесли вы хотите пожаловатся на пользователя, пишите так: \n/report @username [причина]\n\n обязательно после /report пишите хэштег:\n#user - жалоба на пользователя\n #message - жалоба на сообщение")
+        bot.reply_to(message, "✍️ Используй: /report [текст жалобы]\n<b>как правльно оформить жалобу<b>\nесли у вас жалоба на сообщение, следуйте инструкции:\n1. зажмите это сообщение\n2. скопируйте ссылку на сообщение\nправильное фофрмление: /report [ссылка на сообщение] [причина]\n\n <b>жалоба на пользователя<b>\nесли вы хотите пожаловатся на пользователя, пишите так: \n/report @username [причина]\n\n обязательно после /report пишите хэштег:\n#user - жалоба на пользователя\n #message - жалоба на сообщение", parse_mode="HTML")
         return
 
     complaint = parts[1]
@@ -943,7 +997,7 @@ def cmd_homework(message):
         # На каждый день хранится одно задание: просто перезаписываем
         homework_data[day_full] = task
         save_homework(homework_data)
-        bot.reply_to(message, f"✅ Домашнее задание на <b>{day_full}</b> обновлено:\n{task}")
+        bot.reply_to(message, f"✅ Домашнее задание на <b>{day_full}</b> обновлено:\n{task}", parse_mode="HTML")
         return
 
     # В группе — показ ДЗ
@@ -973,7 +1027,8 @@ def cmd_ban(message):
 
     target_id = message.reply_to_message.from_user.id
     if has_immunity(target_id):
-        bot.reply_to(message, "🛡 {first_name} избежал бана иммунитетом!")
+        name = getattr(message.reply_to_message.from_user, 'first_name', str(target_id))
+        bot.reply_to(message, f"🛡 {name} избежал бана иммунитетом!")
         return
 
     parts = message.text.split(maxsplit=1)
@@ -994,7 +1049,7 @@ def cmd_mute(message):
         bot.reply_to(message, "❌ Только админы могут использовать эту команду!")
         return
     if not message.reply_to_message:
-        bot.reply_to(message, "⚠️ Используй команду <b>ответом</b> на сообщение. Пример: /mute 30m")
+        bot.reply_to(message, "⚠️ Используй команду <b>ответом</b> на сообщение. Пример: /mute 30m", parse_mode="HTML")
         return
 
     parts = message.text.split(maxsplit=1)
@@ -1004,6 +1059,12 @@ def cmd_mute(message):
         return
 
     target_id = message.reply_to_message.from_user.id
+    # Проверка иммунитета к муту (и бану) — если есть, отменяем операцию
+    if has_immunity(target_id):
+        name = getattr(message.reply_to_message.from_user, 'first_name', str(target_id))
+        bot.reply_to(message, f"🛡 {name} избежал мута иммунитетом!")
+        return
+
     try:
         bot.restrict_chat_member(
             chat_id=message.chat.id,
@@ -1113,16 +1174,33 @@ def cmd_daily(message):
     last_daily = xp_data.get(user_id, {}).get("last_daily")
 
     if last_daily:
-        last_daily_date = datetime.datetime.fromisoformat(last_daily)
-        # Приведение обеих дат к offset-naive для корректного сравнения
-        last_daily_date = last_daily_date.replace(tzinfo=None)
-        now_naive = now.replace(tzinfo=None)
-        if (now_naive - last_daily_date).days < 1:
-            bot.reply_to(message, "❌ Вы уже получили ежедневную награду. Попробуйте завтра.")
-            return
+        try:
+            last_daily_date = datetime.datetime.fromisoformat(last_daily)
+            last_daily_date = last_daily_date.replace(tzinfo=None)
+            now_naive = now.replace(tzinfo=None)
+            next_available = last_daily_date + datetime.timedelta(days=1)
+            if now_naive < next_available:
+                remaining = (next_available - now_naive).total_seconds()
+                hrs = int(remaining // 3600)
+                mins = int((remaining % 3600) // 60)
+                secs = int(remaining % 60)
+                if hrs > 0:
+                    timestr = f"{hrs}ч {mins}м"
+                elif mins > 0:
+                    timestr = f"{mins}м {secs}s"
+                else:
+                    timestr = f"{secs}s"
+                bot.reply_to(message, f"❌ Вы уже получили ежедневную награду. До следующей: {timestr}.")
+                return
+        except Exception:
+            # Если парсинг упал — позволим выдать награду
+            pass
 
     reward = random.randint(30, 100)  # Рандомная награда от 30 до 100 монет
     add_coins(user_id, reward)
+    # Убедимся, что запись в xp_data существует (исправление KeyError)
+    if user_id not in xp_data:
+        xp_data[user_id] = {"xp": 0, "level": 1, "last_daily": None, "username": message.from_user.username or message.from_user.first_name}
     xp_data[user_id]["last_daily"] = now.isoformat()
     save_xp()
     bot.reply_to(message, f"✅ Вы получили ежедневную награду: {reward} монет!")
@@ -1179,6 +1257,15 @@ xp_data = load_xp()
 
 # начисление XP за сообщение
 def add_xp(user_id, username, amount=5):
+    # Если пользователь в блоке личного спама — не начисляем XP
+    try:
+        uid = str(user_id)
+        blocked_until = private_spam_blocks.get(uid, 0)
+        if blocked_until and time.time() < blocked_until:
+            return False, xp_data.get(uid, {}).get("level", 1), xp_data.get(uid, {}).get("xp", 0)
+    except Exception:
+        pass
+
     if str(user_id) not in xp_data:
         xp_data[str(user_id)] = {"xp": 0, "level": 1, "last_daily": None, "username": username}
     xp_data[str(user_id)]["xp"] += amount
@@ -1207,11 +1294,11 @@ def cmd_level(message):
 
 # Список товаров магазина
 SHOP_ITEMS = {
-    "⭐ Модератор": 5000,
-    "👑 Администратор": 10000,
-    "👑 Владелец": 100000,
-    "⭐ Мл. админ": 10000,
-    "🛡 Иммунитет к бану (1)": 1000
+    "⭐ Модератор": 4000,
+    "👑 Администратор": 8000,
+    "👑 Владелец": 95000,
+    "⭐ Мл. админ": 9000,
+    "🛡 Иммунитет к бану (1)": 500
 }
 
 # Команда /shop — отображение магазина с кнопками
@@ -1331,11 +1418,12 @@ def handle_buy(call):
 
     # Если покупается иммунитет к бану
     if item_name == "🛡 Иммунитет к бану (1)":
+        uid = str(user_id)
         immune_users = load_immune_users()
-        immune_users[user_id] = immune_users.get(user_id, 0) + 1
+        immune_users[uid] = immune_users.get(uid, 0) + 1
         save_immune_users(immune_users)
         remove_coins(user_id, item_price)
-        bot.answer_callback_query(call.id, f"✅ Вы купили иммунитет к бану. Осталось {immune_users[user_id]} иммунитетов.")
+        bot.answer_callback_query(call.id, f"✅ Вы купили иммунитет к бану. Осталось {immune_users[uid]} иммунитетов.")
         return
 
     # Обычная покупка
@@ -1360,21 +1448,72 @@ def remove_coins(user_id, amount):
 def add_coins(user_id, amount):
     """Добавить монеты пользователю."""
     uid = str(user_id)
+    # Если пользователь в блоке личного спама — не начисляем монеты
+    try:
+        blocked_until = private_spam_blocks.get(uid, 0)
+        if blocked_until and time.time() < blocked_until:
+            return False
+    except Exception:
+        pass
+
     if uid not in coins_data:
         coins_data[uid] = {"coins": 0}
     coins_data[uid]["coins"] += amount
     save_coins()
+    return True
 
 def has_immunity(user_id):
     """Проверяет, есть ли у пользователя иммунитет к бану."""
+    uid = str(user_id)
     immune_users = load_immune_users()
-    if str(user_id) in immune_users and immune_users[str(user_id)] > 0:
-        immune_users[str(user_id)] -= 1
-        if immune_users[str(user_id)] == 0:
-            del immune_users[str(user_id)]  # Удаляем запись, если иммунитет закончился
+    cnt = immune_users.get(uid, 0)
+    if cnt > 0:
+        cnt -= 1
+        if cnt > 0:
+            immune_users[uid] = cnt
+        else:
+            # удалить ключ если больше нет иммунитетов
+            immune_users.pop(uid, None)
         save_immune_users(immune_users)
         return True
     return False
+
+@bot.message_handler(commands=['privateblocks'])
+def cmd_privateblocks(message):
+    # Только админ/владелец
+    if message.from_user.id not in (OWNER_ID, ADMIN_USER_ID):
+        bot.reply_to(message, "❌ У вас нет прав для этой команды.")
+        return
+
+    now = time.time()
+    lines = []
+    for uid, until_ts in private_spam_blocks.items():
+        if until_ts > now:
+            rem = int(until_ts - now)
+            mins = rem // 60
+            lines.append(f"ID:{uid} — осталось {mins} мин")
+    if not lines:
+        bot.reply_to(message, "ℹ️ Нет активных блокировок личных начислений.")
+    else:
+        bot.reply_to(message, "📋 Активные блокировки:\n" + "\n".join(lines))
+
+@bot.message_handler(commands=['unblockprivate'])
+def cmd_unblockprivate(message):
+    # Только админ/владелец
+    if message.from_user.id not in (OWNER_ID, ADMIN_USER_ID):
+        bot.reply_to(message, "❌ У вас нет прав для этой команды.")
+        return
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        bot.reply_to(message, "✍️ Используйте: /unblockprivate [user_id]")
+        return
+    target = parts[1].strip()
+    if target in private_spam_blocks:
+        private_spam_blocks.pop(target, None)
+        save_private_spam()
+        bot.reply_to(message, f"✅ Блокировка для ID {target} снята.")
+    else:
+        bot.reply_to(message, "⚠️ Такая блокировка не найдена.")
 
 
 if __name__ == "__main__":
@@ -1389,8 +1528,7 @@ if __name__ == "__main__":
 
     # Запуск ежедневного сообщения
     schedule_daily_message(GROUP_CHAT_ID, TOPIC_ID)
-
-    # Бесконечный цикл для polling
+    # Запуск polling
     while True:
         try:
             bot.infinity_polling(timeout=60, long_polling_timeout=60)
@@ -1401,3 +1539,4 @@ if __name__ == "__main__":
         except Exception:
             logging.exception("Infinity polling exception — перезапуск через 5 секунд")
             time.sleep(5)
+    
