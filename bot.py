@@ -9,7 +9,7 @@ import datetime  # уже есть в файле, используем datetime.
 from collections import defaultdict
 import threading
 
-TOKEN = "8446171144:AAGFCANz0Zg7ZvLFootABJ866pkm6dhoeNg"
+TOKEN = "no token"
 bot = telebot.TeleBot(TOKEN)
 ADMIN_CHAT_ID = 5782683757
 
@@ -1540,3 +1540,4 @@ if __name__ == "__main__":
             logging.exception("Infinity polling exception — перезапуск через 5 секунд")
             time.sleep(5)
     
+
