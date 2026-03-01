@@ -1,37 +1,37 @@
 {
   "5782683757": {
-    "username": "RBXTelega1",
-    "first_name": "Mr. Посхалко",
+    "username": "pycodder",
+    "first_name": "Mr. Пасхалко",
     "last_name": "👨‍💻",
     "all": {
-      "messages": 604
+      "messages": 793
     },
     "by_chat": {
-      "-1002241393389": 138,
-      "5782683757": 466
+      "-1002241393389": 311,
+      "5782683757": 482
     }
   },
   "6545137320": {
-    "username": "ruskik_stovtoroi_po_schety",
-    "first_name": "ruskik102",
+    "username": "pozivnoy_riskik",
+    "first_name": "pozivnoyyy_riskikk",
     "last_name": null,
     "all": {
-      "messages": 18
+      "messages": 190
     },
     "by_chat": {
-      "-1002241393389": 18
+      "-1002241393389": 190
     }
   },
   "6483732727": {
     "username": "Bloxeer",
-    "first_name": "Alex😶",
+    "first_name": "Alex",
     "last_name": null,
     "all": {
-      "messages": 1000
+      "messages": 1024
     },
     "by_chat": {
-      "6483732727": 1000,
-      "-1002241393389": 3
+      "6483732727": 1018,
+      "-1002241393389": 9
     }
   },
   "7648592847": {
@@ -46,15 +46,16 @@
     }
   },
   "6805997690": {
-    "username": "OzvyshuvayRozu",
-    "first_name": "Мисс Блуми",
+    "username": "Nuftytop",
+    "first_name": "Ϻμϲϲ Ҕλγϻμ",
     "last_name": null,
     "all": {
-      "messages": 1801
+      "messages": 1881
     },
     "by_chat": {
-      "-1002241393389": 92,
-      "-1003329120037": 1709
+      "-1002241393389": 153,
+      "-1003329120037": 1709,
+      "6805997690": 19
     }
   },
   "6644275327": {
@@ -70,13 +71,13 @@
   },
   "6937329693": {
     "username": null,
-    "first_name": "Lara 2025🐲💌🥀🤬 карамелька 1488",
+    "first_name": "Ангел в кедах",
     "last_name": null,
     "all": {
-      "messages": 2
+      "messages": 6
     },
     "by_chat": {
-      "-1002241393389": 2
+      "-1002241393389": 6
     }
   },
   "5375431937": {
@@ -91,25 +92,27 @@
     }
   },
   "8284729373": {
-    "username": "reservRBXTelega",
-    "first_name": "Клутой😎😎😎",
+    "username": "pywriteer",
+    "first_name": "main.py",
     "last_name": null,
     "all": {
-      "messages": 295
+      "messages": 512
     },
     "by_chat": {
-      "-1002241393389": 8
+      "-1002241393389": 40,
+      "8284729373": 185
     }
   },
   "8041353323": {
-    "username": "Hdjsjjjz",
+    "username": "Etovasebatnedolgno",
     "first_name": "Misha",
     "last_name": null,
     "all": {
-      "messages": 22
+      "messages": 50
     },
     "by_chat": {
-      "-1002241393389": 22
+      "-1002241393389": 49,
+      "8041353323": 1
     }
   },
   "5862095051": {
@@ -117,32 +120,33 @@
     "first_name": "Дима Акинин",
     "last_name": null,
     "all": {
-      "messages": 9
+      "messages": 32
     },
     "by_chat": {
-      "-1002241393389": 9
+      "-1002241393389": 32
     }
   },
   "7993844003": {
     "username": "dashhiiikkk",
-    "first_name": "Даша]🩷",
+    "first_name": "𝓓𝓪𝓼𝓱𝓪🐈‍⬛",
     "last_name": null,
     "all": {
-      "messages": 1
+      "messages": 2
     },
     "by_chat": {
-      "7993844003": 1
+      "7993844003": 1,
+      "-1002241393389": 1
     }
   },
   "6657988816": {
-    "username": "okak_99906",
-    "first_name": "♡Нимеция♡",
+    "username": "edrrrr12",
+    "first_name": "♡ 我已經知道該寫什麼了 ♡",
     "last_name": null,
     "all": {
-      "messages": 1
+      "messages": 23
     },
     "by_chat": {
-      "-1002241393389": 1
+      "-1002241393389": 23
     }
   },
   "8493126459": {
@@ -154,6 +158,39 @@
     },
     "by_chat": {
       "-1002241393389": 1
+    }
+  },
+  "8182579353": {
+    "username": "Gast1k4",
+    "first_name": "Алег",
+    "last_name": "₴💣🍄🚂🍺",
+    "all": {
+      "messages": 2
+    },
+    "by_chat": {
+      "-1002241393389": 2
+    }
+  },
+  "5775093664": {
+    "username": "Tota228pu",
+    "first_name": "Тотя♥️",
+    "last_name": null,
+    "all": {
+      "messages": 13
+    },
+    "by_chat": {
+      "-1002241393389": 13
+    }
+  },
+  "5310333143": {
+    "username": "Surmai_mi1702sha",
+    "first_name": "Xabi Alonso",
+    "last_name": "(Миша Сурмай)",
+    "all": {
+      "messages": 8
+    },
+    "by_chat": {
+      "-1002241393389": 8
     }
   }
 }
